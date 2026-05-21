@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:wifiskripsi_frontend/core/constants/app_colors.dart';
 import 'package:wifiskripsi_frontend/providers/auth_provider.dart';
 import 'package:wifiskripsi_frontend/providers/dashboard_provider.dart';
+import 'package:wifiskripsi_frontend/providers/admin_provider.dart';
 import 'package:wifiskripsi_frontend/providers/transaction_provider.dart';
 import 'package:wifiskripsi_frontend/providers/notification_provider.dart';
 import 'package:wifiskripsi_frontend/screens/auth/splash_screen.dart';
@@ -21,6 +22,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => DashboardProvider()),
+        ChangeNotifierProvider(create: (_) => AdminProvider()),
         ChangeNotifierProvider(create: (_) => TransactionProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],

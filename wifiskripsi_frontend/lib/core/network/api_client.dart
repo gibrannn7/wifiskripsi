@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ApiClient {
   // Ubah ke URL Ngrok Anda sesuai dengan .env backend
   static const String baseUrl =
-      'https://a340-180-242-129-174.ngrok-free.app/api';
+      'https://17bd-180-242-129-174.ngrok-free.app/api';
 
   static Future<Map<String, String>> _getHeaders() async {
     final prefs = await SharedPreferences.getInstance();
@@ -31,5 +31,20 @@ class ApiClient {
     final url = Uri.parse('$baseUrl$endpoint');
     final headers = await _getHeaders();
     return await http.post(url, headers: headers, body: jsonEncode(body));
+  }
+
+  static Future<http.Response> put(
+    String endpoint,
+    Map<String, dynamic> body,
+  ) async {
+    final url = Uri.parse('$baseUrl$endpoint');
+    final headers = await _getHeaders();
+    return await http.put(url, headers: headers, body: jsonEncode(body));
+  }
+
+  static Future<http.Response> delete(String endpoint) async {
+    final url = Uri.parse('$baseUrl$endpoint');
+    final headers = await _getHeaders();
+    return await http.delete(url, headers: headers);
   }
 }

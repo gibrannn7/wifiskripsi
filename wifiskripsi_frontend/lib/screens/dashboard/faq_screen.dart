@@ -73,28 +73,39 @@ class _FaqScreenState extends State<FaqScreen> {
     return Scaffold(
       backgroundColor: AppColors.bgCanvas,
       appBar: AppBar(
-        backgroundColor: AppColors.darkWine,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.nightDark, AppColors.darkWine],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         elevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textWhite),
         title: const Text(
           'Pusat Bantuan (FAQ)',
           style: TextStyle(
             fontFamily: 'Inter',
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
             color: AppColors.textWhite,
             fontSize: 18,
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _contactAdmin,
-        backgroundColor: AppColors.statusActive,
-        icon: const Icon(Icons.chat_rounded, color: AppColors.textWhite),
-        label: const Text(
-          'Hubungi Admin',
-          style: TextStyle(
-            color: AppColors.textWhite,
-            fontWeight: FontWeight.bold,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 100.0),
+        child: FloatingActionButton.extended(
+          onPressed: _contactAdmin,
+          backgroundColor: AppColors.statusActive,
+          icon: const Icon(Icons.chat_rounded, color: AppColors.textWhite),
+          label: const Text(
+            'Hubungi Admin',
+            style: TextStyle(
+              color: AppColors.textWhite,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),
@@ -148,8 +159,12 @@ class _FaqScreenState extends State<FaqScreen> {
           right: 16,
           bottom: 80,
         ),
-        itemCount: _faqs.length,
+        itemCount: _faqs.length + 1,
         itemBuilder: (context, index) {
+          if (index == _faqs.length) {
+            return const SizedBox(height: 120);
+          }
+
           final faq = _faqs[index];
           return Card(
             elevation: 1,

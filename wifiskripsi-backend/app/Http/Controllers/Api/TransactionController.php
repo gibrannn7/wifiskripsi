@@ -20,6 +20,14 @@ class TransactionController extends Controller
         \Midtrans\Config::$isProduction = env('MIDTRANS_IS_PRODUCTION', false);
         \Midtrans\Config::$isSanitized = env('MIDTRANS_IS_SANITIZED', true);
         \Midtrans\Config::$is3ds = env('MIDTRANS_IS_3DS', true);
+        
+        // Disable SSL verification for local Windows environments (resolves cURL error 77)
+        if (env('APP_ENV') === 'local') {
+            \Midtrans\Config::$curlOptions = [
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_SSL_VERIFYHOST => false
+            ];
+        }
     }
 
     /**
@@ -56,7 +64,7 @@ class TransactionController extends Controller
 
         // Buat Order ID Unik (WS-Timestamp-Random)
         $orderId = 'WS-' . time() . '-' . rand(100, 999);
-        $grossAmount = $package->price;
+        $grossAmount = (int) round((float) $package->price);
 
         // Simpan Transaksi ke Database (Status: Pending)
         $transaction = Transaction::create([
@@ -82,14 +90,14 @@ class TransactionController extends Controller
                 ]
             ],
             'customer_details' => [
-                'first_name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone,
+                'first_name' => empty($user->name) ? 'Customer' : $user->name,
+                'email' => empty($user->email) ? 'no-email@example.com' : $user->email,
+                'phone' => empty($user->phone) ? '080000000000' : $user->phone,
                 'billing_address' => [
-                    'first_name' => $user->name,
-                    'email' => $user->email,
-                    'phone' => $user->phone,
-                    'address' => $user->address,
+                    'first_name' => empty($user->name) ? 'Customer' : $user->name,
+                    'email' => empty($user->email) ? 'no-email@example.com' : $user->email,
+                    'phone' => empty($user->phone) ? '080000000000' : $user->phone,
+                    'address' => empty($user->address) ? 'Alamat belum diisi' : $user->address,
                 ]
             ],
         ];

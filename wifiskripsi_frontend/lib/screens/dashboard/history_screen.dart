@@ -82,14 +82,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Scaffold(
       backgroundColor: AppColors.bgCanvas,
       appBar: AppBar(
-        backgroundColor: AppColors.darkWine,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColors.nightDark, AppColors.darkWine],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         elevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textWhite),
         title: const Text(
           'Riwayat Transaksi',
           style: TextStyle(
             fontFamily: 'Inter',
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
             color: AppColors.textWhite,
             fontSize: 18,
           ),
@@ -139,12 +147,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
             onRefresh: () => provider.fetchHistory(),
             child: ListView.builder(
               padding: const EdgeInsets.all(16.0),
-              itemCount: provider.transactions.length,
+              itemCount: provider.transactions.length + 1,
               itemBuilder: (context, index) {
+                if (index == provider.transactions.length) {
+                  return const SizedBox(height: 120);
+                }
+
                 final tx = provider.transactions[index];
-                final package = tx['wifi_package'] ?? {};
-                final double amount = double.tryParse(tx['gross_amount'].toString()) ?? 0;
-                final status = tx['transaction_status'] ?? 'pending';
+                final double amount = tx.grossAmount.toDouble();
+                final status = tx.status;
 
                 return Card(
                   elevation: 2,
@@ -159,7 +170,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              tx['order_id'] ?? '-',
+                              tx.orderId,
                               style: AppTextStyles.medium.copyWith(color: AppColors.textSecondary, fontSize: 12),
                             ),
                             Container(
@@ -193,12 +204,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    package['package_name'] ?? 'Paket Wi-Fi',
+                                    tx.packageName ?? 'Paket Wi-Fi',
                                     style: AppTextStyles.semiBold.copyWith(fontSize: 16),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    _formatDate(tx['created_at']),
+                                    _formatDate(tx.createdAt),
                                     style: AppTextStyles.regular.copyWith(color: AppColors.textSecondary, fontSize: 12),
                                   ),
                                 ],

@@ -25,7 +25,8 @@ class AuthProvider with ChangeNotifier {
 
       if (response.statusCode == 200 && data['success'] == true) {
         final token = data['data']['access_token'];
-        await _saveToken(token);
+        final role = data['data']['user']['role'] ?? 'user';
+        await _saveAuthData(token, role);
         _setLoading(false);
         return true;
       } else {
@@ -51,7 +52,8 @@ class AuthProvider with ChangeNotifier {
 
       if (response.statusCode == 201 && data['success'] == true) {
         final token = data['data']['access_token'];
-        await _saveToken(token);
+        final role = data['data']['user']['role'] ?? 'user';
+        await _saveAuthData(token, role);
         _setLoading(false);
         return true;
       } else {
@@ -72,10 +74,11 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  /// Menyimpan token autentikasi ke penyimpanan lokal
-  Future<void> _saveToken(String token) async {
+  /// Menyimpan token autentikasi dan role ke penyimpanan lokal
+  Future<void> _saveAuthData(String token, String role) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
+    await prefs.setString('user_role', role);
   }
 
   /// Keluar (Logout) dan menghapus token lokal
@@ -90,8 +93,42 @@ class AuthProvider with ChangeNotifier {
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
+    await prefs.remove('user_role');
     
     _setLoading(false);
+  }
+
+  /// Memperbarui profil pengguna (Nomor Telepon & Alamat)
+  Future<bool> updateProfile(String phone, String address) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      final response = await ApiClient.put('/profile/update', {
+        'phone': phone,
+        'address': address,
+      });
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && data['success'] == true) {
+        _setLoading(false);
+        return true;
+      } else {
+        if (data['errors'] != null) {
+          final errors = data['errors'] as Map<String, dynamic>;
+          _errorMessage = errors.values.first[0];
+        } else {
+          _errorMessage = data['message'] ?? 'Gagal memperbarui profil.';
+        }
+        _setLoading(false);
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = 'Terjadi kesalahan jaringan atau server.';
+      _setLoading(false);
+      return false;
+    }
   }
 
   /// Mengelola status loading

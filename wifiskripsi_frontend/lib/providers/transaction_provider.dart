@@ -1,15 +1,16 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:wifiskripsi_frontend/core/network/api_client.dart';
+import 'package:wifiskripsi_frontend/models/transaction_model.dart';
 
 class TransactionProvider with ChangeNotifier {
   bool _isLoading = false;
   String _errorMessage = '';
-  List<dynamic> _transactions = [];
+  List<TransactionModel> _transactions = [];
 
   bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
-  List<dynamic> get transactions => _transactions;
+  List<TransactionModel> get transactions => _transactions;
 
   /// Memulai proses pembayaran paket (Checkout)
   Future<Map<String, dynamic>?> checkout(int packageId) async {
@@ -48,7 +49,7 @@ class TransactionProvider with ChangeNotifier {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['success'] == true) {
-        _transactions = data['data'];
+        _transactions = (data['data'] as List).map((json) => TransactionModel.fromJson(json)).toList();
       } else {
         _errorMessage = data['message'] ?? 'Gagal memuat riwayat transaksi.';
       }

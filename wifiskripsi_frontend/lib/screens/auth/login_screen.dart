@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wifiskripsi_frontend/core/constants/app_colors.dart';
 import 'package:wifiskripsi_frontend/core/theme/app_text_styles.dart';
 import 'package:wifiskripsi_frontend/providers/auth_provider.dart';
-import 'package:wifiskripsi_frontend/screens/dashboard/home_screen.dart';
+import 'package:wifiskripsi_frontend/screens/dashboard/main_navigation_hub.dart';
+import 'package:wifiskripsi_frontend/screens/admin/admin_navigation_hub.dart';
+import 'package:wifiskripsi_frontend/widgets/custom_dialog.dart';
 import 'package:wifiskripsi_frontend/screens/auth/register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -39,22 +42,37 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
 
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Berhasil Masuk!'),
-            backgroundColor: AppColors.statusActive,
-          ),
-        );
-        Navigator.pushReplacement(
+        final prefs = await SharedPreferences.getInstance();
+        final role = prefs.getString('user_role');
+
+        if (!mounted) return;
+
+        CustomDialog.showSuccess(
           context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          'Berhasil Masuk',
+          'Autentikasi berhasil. Mengalihkan...',
+          autoDismiss: true,
+          onConfirm: () {
+            if (!mounted) return;
+            if (role == 'admin') {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const AdminNavigationHub()),
+              );
+            } else {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const MainNavigationHub()),
+              );
+            }
+          },
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authProvider.errorMessage),
-            backgroundColor: AppColors.statusInactive,
-          ),
+        CustomDialog.showError(
+          context,
+          'Masuk Gagal',
+          authProvider.errorMessage,
+          buttonText: 'Coba Lagi',
         );
       }
     }

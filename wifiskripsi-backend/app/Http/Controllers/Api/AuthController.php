@@ -143,4 +143,45 @@ class AuthController extends Controller
             ], 500);
         }
     }
+    /**
+     * Update Profil (Phone & Address)
+     */
+    public function updateProfile(Request $request)
+    {
+        try {
+            $validatedData = $request->validate([
+                'phone' => 'required|numeric|digits_between:10,15',
+                'address' => 'required|string',
+            ], [
+                'phone.required' => 'Nomor telepon wajib diisi.',
+                'phone.numeric' => 'Nomor telepon hanya boleh berisi angka.',
+                'address.required' => 'Alamat pemasangan wajib diisi.',
+            ]);
+
+            $user = $request->user();
+            $user->update([
+                'phone' => $validatedData['phone'],
+                'address' => $validatedData['address'],
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profil berhasil diperbarui.',
+                'data' => $user
+            ], 200);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memperbarui profil.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

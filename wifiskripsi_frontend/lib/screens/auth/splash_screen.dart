@@ -3,7 +3,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wifiskripsi_frontend/core/constants/app_colors.dart';
 import 'package:wifiskripsi_frontend/core/constants/app_assets.dart';
 import 'package:wifiskripsi_frontend/screens/auth/login_screen.dart';
-import 'package:wifiskripsi_frontend/screens/dashboard/home_screen.dart';
+import 'package:wifiskripsi_frontend/screens/dashboard/main_navigation_hub.dart';
+import 'package:wifiskripsi_frontend/screens/admin/admin_navigation_hub.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -25,15 +26,22 @@ class _SplashScreenState extends State<SplashScreen> {
 
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
+    final role = prefs.getString('user_role');
 
     if (!mounted) return;
 
     if (token != null && token.isNotEmpty) {
-      // Jika token ada, arahkan ke HomeScreen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
+      if (role == 'admin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AdminNavigationHub()),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainNavigationHub()),
+        );
+      }
     } else {
       // Gerbang Proteksi: Token tidak ada/tidak valid, wajib ke layar masuk (Login)
       Navigator.pushReplacement(

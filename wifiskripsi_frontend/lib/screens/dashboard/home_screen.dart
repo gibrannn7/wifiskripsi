@@ -10,7 +10,9 @@ import 'package:wifiskripsi_frontend/providers/dashboard_provider.dart';
 import 'package:wifiskripsi_frontend/providers/auth_provider.dart';
 import 'package:wifiskripsi_frontend/providers/transaction_provider.dart';
 import 'package:wifiskripsi_frontend/screens/auth/login_screen.dart';
-import 'package:wifiskripsi_frontend/screens/dashboard/snap_webview_screen.dart';
+import 'package:wifiskripsi_frontend/models/user_model.dart';
+import 'package:wifiskripsi_frontend/screens/dashboard/package_detail_screen.dart';
+import 'package:wifiskripsi_frontend/models/package_model.dart';
 import 'package:wifiskripsi_frontend/screens/dashboard/history_screen.dart';
 import 'package:wifiskripsi_frontend/screens/dashboard/notification_screen.dart';
 import 'package:wifiskripsi_frontend/screens/dashboard/faq_screen.dart';
@@ -90,6 +92,8 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.nightDark,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         titleSpacing: 0,
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -173,9 +177,9 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           }
 
-          final userData = dashboard.dashboardData?['user'] ?? {};
-          final connectionData = dashboard.dashboardData?['connection'] ?? {};
-          final telemetryData = dashboard.dashboardData?['telemetry'] ?? {};
+          final userData = dashboard.userData;
+          final connectionData = dashboard.connectionData;
+          final telemetryData = dashboard.telemetryData;
           final packages = dashboard.packages;
 
           return RefreshIndicator(
@@ -199,29 +203,33 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   // Widget 1: User Context Floating Card
                   Transform.translate(
-                    offset: const Offset(0, -80),
+                    offset: const Offset(0, -60), // Dikurangi agar jarak bawah tidak terlalu renggang
                     child: _buildUserCard(userData),
                   ),
                   
-                  const SizedBox(height: 24),
-                  
                   // Widget 2: Connection Telemetry Card
-                  _buildTelemetryCard(connectionData, telemetryData),
-
-                  const SizedBox(height: 24),
+                  Transform.translate(
+                    offset: const Offset(0, -50), // Ditarik ke atas agar dekat dengan User Card
+                    child: _buildTelemetryCard(connectionData, telemetryData),
+                  ),
                   
                   // Widget 3: Penawaran Terbaik (Carousel)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Text(
-                      'Penawaran Terbaik',
-                      style: AppTextStyles.bold.copyWith(fontSize: 18),
+                  Transform.translate(
+                    offset: const Offset(0, -20), // Ditarik ke atas
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: Text(
+                        'Penawaran Terbaik',
+                        style: AppTextStyles.bold.copyWith(fontSize: 18),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  _buildPackagesCarousel(packages),
+                  Transform.translate(
+                    offset: const Offset(0, -20),
+                    child: _buildPackagesCarousel(packages),
+                  ),
                   
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 120), // Bantalan aman bawah Navbar melayang
                 ],
               ),
             ),
@@ -231,9 +239,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildUserCard(Map<String, dynamic> user) {
-    final String name = user['name'] ?? 'Pengguna';
-    final String phone = user['phone'] ?? '-';
+  Widget _buildUserCard(UserModel? user) {
+    final String name = user?.name ?? 'Pengguna';
+    final String phone = user?.phone ?? '-';
     
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -366,7 +374,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildTelemetryCard(Map<String, dynamic> connection, Map<String, dynamic> telemetry) {
     final bool isActive = connection['is_active'] == true;
-    final int daysRemaining = connection['days_remaining'] ?? 0;
+    final int daysRemaining = double.tryParse(connection['days_remaining']?.toString() ?? '0')?.toInt() ?? 0;
     final double upload = (telemetry['upload_mbps'] ?? 0).toDouble();
     final double download = (telemetry['download_mbps'] ?? 0).toDouble();
 
@@ -397,12 +405,16 @@ class _HomeScreenState extends State<HomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'KONEKSI JARINGAN',
-                    style: AppTextStyles.semiBold.copyWith(
-                      color: AppColors.textWhite.withValues(alpha: 0.7),
-                      fontSize: 12,
-                      letterSpacing: 1.5,
+                  Expanded(
+                    child: Text(
+                      'KONEKSI JARINGAN',
+                      style: AppTextStyles.semiBold.copyWith(
+                        color: AppColors.textWhite.withValues(alpha: 0.7),
+                        fontSize: 12,
+                        letterSpacing: 1.5,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   Container(
@@ -534,21 +546,21 @@ class _HomeScreenState extends State<HomeScreen> {
     return spots;
   }
 
-  Widget _buildPackagesCarousel(List<dynamic> packages) {
+  Widget _buildPackagesCarousel(List<PackageModel> packages) {
     if (packages.isEmpty) {
       return const Center(child: Text('Tidak ada paket tersedia.'));
     }
 
     return SizedBox(
-      height: 180,
+      height: 200,
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         scrollDirection: Axis.horizontal,
         itemCount: packages.length,
         itemBuilder: (context, index) {
           final package = packages[index];
-          final bool isPromoted = package['is_promoted'] == 1 || package['is_promoted'] == true;
-          final double currentPrice = double.tryParse(package['price'].toString()) ?? 0;
+          final bool isPromoted = package.isPromoted;
+          final double currentPrice = package.price.toDouble();
           
           // Memanipulasi harga inti jika dipromosikan (diskon seolah-olah 30% lebih mahal aslinya)
           final double fakeOriginalPrice = isPromoted ? currentPrice * 1.3 : currentPrice;
@@ -567,7 +579,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          package['package_name'],
+                          package.packageName,
                           style: AppTextStyles.bold.copyWith(
                             color: AppColors.darkWine,
                             fontSize: 18,
@@ -579,7 +591,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             const Icon(Icons.speed_rounded, size: 16, color: AppColors.statusActive),
                             const SizedBox(width: 4),
                             Text(
-                              '${package['speed_mbps']} Mbps • ${package['duration_days']} Hari',
+                              '${package.speedMbps} Mbps • ${package.durationDays} Hari',
                               style: AppTextStyles.medium.copyWith(color: AppColors.textSecondary),
                             ),
                           ],
@@ -609,40 +621,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                 return ElevatedButton(
                                   onPressed: txProvider.isLoading 
                                       ? null 
-                                      : () async {
-                                          final result = await txProvider.checkout(package['id']);
-                                          if (result != null && result['redirect_url'] != null) {
-                                            if (!context.mounted) return;
-                                            
-                                            // Membuka Halaman WebView Snap Midtrans
-                                            final isSuccess = await Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) => SnapWebviewScreen(
-                                                  redirectUrl: result['redirect_url'],
-                                                ),
-                                              ),
-                                            );
-
-                                            // Jika kembali dengan nilai true (transaksi selesai), muat ulang dasbor
-                                            if (isSuccess == true && context.mounted) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text('Transaksi Selesai!'),
-                                                  backgroundColor: AppColors.statusActive,
-                                                ),
-                                              );
-                                              Provider.of<DashboardProvider>(context, listen: false).fetchData();
-                                            }
-                                          } else {
-                                            if (!context.mounted) return;
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                content: Text(txProvider.errorMessage),
-                                                backgroundColor: AppColors.statusInactive,
-                                              ),
-                                            );
-                                          }
+                                      : () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => PackageDetailScreen(package: package),
+                                            ),
+                                          );
                                         },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.darkWine,
@@ -721,54 +706,61 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             // Skeleton User Card
             Transform.translate(
-              offset: const Offset(0, -80),
+              offset: const Offset(0, -60),
               child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Container(
-                height: 220,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Container(
+                  height: 220,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
               ),
             ),
-            ),
-            const SizedBox(height: 24),
             
             // Skeleton Telemetry
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Container(
-                height: 280,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
+            Transform.translate(
+              offset: const Offset(0, -50),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Container(
+                  height: 280,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 24),
             
             // Skeleton Carousel Title
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Container(width: 150, height: 20, color: Colors.white),
+            Transform.translate(
+              offset: const Offset(0, -20),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Container(width: 150, height: 20, color: Colors.white),
+              ),
             ),
             const SizedBox(height: 12),
             
             // Skeleton Carousel Item
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                children: [
-                  Container(
-                    width: 260,
-                    height: 180,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
+            Transform.translate(
+              offset: const Offset(0, -20),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 260,
+                      height: 200,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],

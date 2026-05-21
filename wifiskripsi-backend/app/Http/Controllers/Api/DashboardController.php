@@ -39,6 +39,8 @@ class DashboardController extends Controller
                 'user' => [
                     'name' => $user->name,
                     'phone' => $user->phone,
+                    'email' => $user->email,
+                    'address' => $user->address,
                     'router_id' => $user->router_id,
                 ],
                 'connection' => [
@@ -47,8 +49,8 @@ class DashboardController extends Controller
                     'days_remaining' => $daysRemaining,
                 ],
                 'telemetry' => [
-                    'upload_mbps' => round($uploadSpeed, 2),
-                    'download_mbps' => round($downloadSpeed, 2),
+                    'upload_mbps' => (float) round($uploadSpeed, 2),
+                    'download_mbps' => (float) round($downloadSpeed, 2),
                 ],
                 'notifications' => [
                     'unread_count' => $unreadCount,

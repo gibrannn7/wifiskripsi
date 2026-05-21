@@ -3,7 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:wifiskripsi_frontend/core/constants/app_colors.dart';
 import 'package:wifiskripsi_frontend/core/theme/app_text_styles.dart';
 import 'package:wifiskripsi_frontend/providers/auth_provider.dart';
-import 'package:wifiskripsi_frontend/screens/dashboard/home_screen.dart';
+import 'package:wifiskripsi_frontend/screens/dashboard/main_navigation_hub.dart';
+import 'package:wifiskripsi_frontend/widgets/custom_dialog.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -50,23 +51,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (!mounted) return;
 
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Pendaftaran Berhasil!'),
-            backgroundColor: AppColors.statusActive,
-          ),
-        );
-        Navigator.pushAndRemoveUntil(
+        CustomDialog.showSuccess(
           context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-          (route) => false,
+          'Pendaftaran Berhasil',
+          'Akun Anda telah berhasil dibuat.',
+          buttonText: 'Masuk Beranda',
+          onConfirm: () {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const MainNavigationHub()),
+              (route) => false,
+            );
+          },
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authProvider.errorMessage),
-            backgroundColor: AppColors.statusInactive,
-          ),
+        CustomDialog.showError(
+          context,
+          'Pendaftaran Gagal',
+          authProvider.errorMessage,
+          buttonText: 'Coba Lagi',
         );
       }
     }

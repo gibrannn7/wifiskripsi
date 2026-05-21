@@ -1,18 +1,25 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:wifiskripsi_frontend/core/network/api_client.dart';
+import 'package:wifiskripsi_frontend/models/user_model.dart';
+import 'package:wifiskripsi_frontend/models/package_model.dart';
 
 class DashboardProvider with ChangeNotifier {
   bool _isLoading = true;
   String _errorMessage = '';
 
   Map<String, dynamic>? _dashboardData;
-  List<dynamic> _packages = [];
+  UserModel? _userData;
+  List<PackageModel> _packages = [];
 
   bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
   Map<String, dynamic>? get dashboardData => _dashboardData;
-  List<dynamic> get packages => _packages;
+  List<PackageModel> get packages => _packages;
+  
+  UserModel? get userData => _userData;
+  Map<String, dynamic> get connectionData => _dashboardData?['connection'] ?? {};
+  Map<String, dynamic> get telemetryData => _dashboardData?['telemetry'] ?? {};
 
   Future<void> fetchData() async {
     _isLoading = true;
@@ -35,10 +42,13 @@ class DashboardProvider with ChangeNotifier {
 
         if (statusData['success'] == true) {
           _dashboardData = statusData['data'];
+          if (_dashboardData != null && _dashboardData!['user'] != null) {
+            _userData = UserModel.fromJson(_dashboardData!['user']);
+          }
         }
 
         if (packageData['success'] == true) {
-          _packages = packageData['data'];
+          _packages = (packageData['data'] as List).map((json) => PackageModel.fromJson(json)).toList();
         }
       } else {
         _errorMessage = 'Gagal memuat data dari server.';

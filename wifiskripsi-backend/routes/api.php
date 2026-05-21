@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\FaqController;
+use App\Http\Controllers\Api\AdminController;
 
 // Public Routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -21,6 +22,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::put('/profile/update', [AuthController::class, 'updateProfile']);
     
     // Dashboard & Paket
     Route::get('/dashboard-status', [DashboardController::class, 'getStatus']);
@@ -33,4 +35,18 @@ Route::middleware('auth:sanctum')->group(function () {
     // Notifikasi
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+
+    // Admin Routes
+    Route::prefix('admin')->group(function () {
+        Route::get('/analytics', [AdminController::class, 'getAnalytics']);
+        
+        Route::post('/packages', [AdminController::class, 'storePackage']);
+        Route::put('/packages/{id}', [AdminController::class, 'updatePackage']);
+        Route::delete('/packages/{id}', [AdminController::class, 'deletePackage']);
+        
+        Route::get('/transactions', [AdminController::class, 'getAllTransactions']);
+        Route::get('/users', [AdminController::class, 'getAllUsers']);
+        Route::post('/notifications/send', [AdminController::class, 'sendPushNotification']);
+        Route::post('/notifications/broadcast', [AdminController::class, 'broadcastNotification']);
+    });
 });
