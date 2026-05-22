@@ -41,7 +41,8 @@ class _SnapWebviewScreenState extends State<SnapWebviewScreen> {
             // Intersepsi Callback Webhook/Simulasi Selesai dari Midtrans
             // Midtrans Sandbox biasanya mengarahkan kembali dengan memuat keyword tertentu
             // Atau Anda bisa mendeteksi return URL yang Anda atur di dashboard Midtrans.
-            if (url.contains('transaction_status=settlement') || 
+            if (url.contains('sukses.wifiskripsi.com') ||
+                url.contains('transaction_status=settlement') || 
                 url.contains('transaction_status=capture') ||
                 url.contains('transaction_status=success') ||
                 url.contains('transaction_status=deny') ||
